@@ -1,0 +1,54 @@
+.project{
+    margin: 20px 50px;
+}
+.projectField{
+    border: 1px solid #efefef;
+}
+.labelItem{
+
+}
+.config{
+    padding: 10px 10px;
+}
+.config:nth-last-child(n + 2){
+    border-bottom: 1px solid #efefef;
+}
+.defaultConfig{
+    float: left;
+    margin: -10px;
+    border-width:15px 15px 0 0;
+    border-style:solid;
+    border-color:#2d8cf0 transparent transparent;
+    position: relative;
+}
+.control{
+    /* display: none; */
+    float: right;
+}
+.config:hover > .control{
+    display: inline-block;
+}
+.branchBox{
+
+}
+.noBranchTag{
+    margin-right: 5px;
+    line-height: 32px;
+}
+.appendBranch{
+    display: none;
+}
+.branchBox:hover > .appendBranch{
+    display: inline-block;
+}
+.vertical-center-modal{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.vertical-center-modal .ivu-modal{
+    top: 0;
+}
+.target{
+    line-height: 32px;
+}

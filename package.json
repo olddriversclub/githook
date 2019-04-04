@@ -1,0 +1,23 @@
+{
+  "name": "git-webhooks-tigger",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "www": "node www/app.js mode=dev",
+    "pm2:add": "pm2 start ./www/app.js -n gitwebhook",
+    "pm2:restart": "pm2 restart gitwebhook"
+  },
+  "dependencies": {
+    "glob": "^7.1.3",
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-compose": "^4.1.0",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
+    "moment": "^2.24.0",
+    "mongoose": "^5.4.13",
+    "opn": "^5.4.0",
+    "request": "^2.88.0"
+  }
+}

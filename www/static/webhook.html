@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>git钉钉通知分流分流</title>
+    <meta charset="UTF-8">
+    <link rel="canonical" href="https://huisuo.net"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="renderer" content="webkit"/>
+    <meta name="force-rendering" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="referrer" content="always">
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name = "format-detection" content = "telephone=no">
+    <script src="./javascripts/vue.min.js"></script>
+    <link rel="stylesheet" href="./javascripts/iview.css">
+    <script src="./javascripts/axios.min.js"></script>
+    <script src="./javascripts/iview.min.js"></script>
+    <link rel="stylesheet" href="./styles/index.css">
+</head>
+<body>
+    <div id="app">
+        <div class="project">
+            <a href="http://git.greedyint.com/IBU-Front-End/git-hooks-tigger/blob/dev-web/README.md" target="_blank" title="README">使用说明</a>
+        </div>
+        <div class="project" v-for="project in projects">
+            <fieldset class="projectField">
+                <legend>{{project.project}}</legend>
+                <div class="config" v-for="config in project.configs">
+                    <!-- <div class="defaultConfig" v-if="config.isDefault"></div> -->
+                    <div class="control">
+                        <Icon type="ios-build" size="16" @click="updateConfig(config)" title="编辑"></Icon>
+                        <Icon type="md-close" size="16" @click="deleteConfig(config)" title="删除"></Icon>
+                    </div>
+                    <div>
+                        <Icon type="ios-star" size="16" v-if="config.isDefault"></Icon>
+                        <span v-if="config.projectTeam" class="labelItem">
+                            <strong>{{config.projectTeam}}</strong>
+                        </span>
+                        <span v-if="config.name" class="labelItem">{{config.name}}</span>
+                    </div>
+                    <div class="target">
+                        <Icon type="md-git-branch" size="16"></Icon>
+                        <span class="labelItem">{{config.targetUri}}</span>
+                    </div>
+                    <div class="branchBox">
+                        <span class="noBranchTag" v-if="!config.branchs.length">暂无分支</span>
+                        <Tag type="dot" closable v-for="branch in config.branchs" :name="branch" color="success" @on-close="removeBranch(config, branch)">{{branch}}</Tag>
+                        <i-button class="appendBranch" icon="ios-add" type="dashed" @click="appendBranch(config)">添加分支</i-button>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="project">
+            <i-button @click="updateConfig()">新增配置</i-button>
+        </div>
+        <Modal
+            :title="editForm.isCreate ? '新建配置' : '编辑配置'"
+            v-model="editForm.opened"
+            class-name="vertical-center-modal"
+            :mask-closable="false"
+            @on-cancel="cancelEdit('editModel')">
+            <i-form ref="editModel" :model="editModel" :rules="ruleValidate" :label-width="90">
+                <form-item label="name" prop="name" v-show="false">
+                    <i-input v-model="editModel.name" placeholder="随便填，暂时没用..."></i-input>
+                </form-item>
+                <form-item label="project" prop="project">
+                    <i-input v-model="editModel.project" placeholder="仓库名（与git中对应仓库必须一致）"></i-input>
+                </form-item>
+                <form-item label="projectTeam" prop="projectTeam">
+                    <i-input v-model="editModel.projectTeam" placeholder="项目组名（用于根据分支名自动通知）"></i-input>
+                </form-item>
+                <form-item label="targetUri" prop="targetUri">
+                    <i-input v-model="editModel.targetUri" placeholder="钉钉gitlab机器人地址"></i-input>
+                </form-item>
+                <form-item label="isDefault" prop="isDefault">
+                    <Checkbox label="isDefault" v-model="editModel.isDefault"></Checkbox>
+                </form-item>
+                <form-item label="branchs" prop="isDefault">
+                    <Tag type="dot" closable v-for="branch in editModel.branchs" :name="branch" color="success" @on-close="delBranch(editModel, branch)">{{branch}}</Tag>
+                    <i-button icon="ios-add" type="dashed" @click="addBranch(editModel)">添加分支</i-button>
+                </form-item>
+            </i-form>
+            <div slot="footer">
+                <i-button type="text" size="large" @click="cancelEdit('editModel')">取消</i-button>
+                <i-button type="primary" size="large" @click="saveConfig('editModel')">确定</i-button>
+            </div>
+        </Modal>
+    </div>
+    <script src="./javascripts/webhook.js"></script>
+</body>
+</html>
