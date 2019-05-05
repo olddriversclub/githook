@@ -5,7 +5,7 @@ const registerRouter = require('./routes')
 const serve = require('koa-static')
 const opn = require('opn')
 const dbHelper = require('./db/index')
-const logger = require('./logger')
+const logger = require('./log4js')
 const Response = require('./response')
 const argvs = require('./process.args')
 // var cors = require('koa2-cors');
@@ -59,7 +59,7 @@ function onError(error, ctx) {
 
         var bind = typeof error.port === "string" ? "Pipe " + error.port : "Port " + error.port;
         let start = (port) => {
-            logger.log('try restart...')
+            logger.info('try restart...')
             www.close();
             www.listen(port)
         }
@@ -83,7 +83,8 @@ let www = app.listen(1001)
     .on("error", onError)
     .on("listening", () => {
         let add = www.address()
-        logger.log('opened server on', add)
+        logger.info('opened server on', add)
+        logger.error('asdasdasd error')
         // opn(`http://${add.address}:${add.port}`);
     });
 

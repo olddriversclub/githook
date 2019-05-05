@@ -4,12 +4,12 @@ const request = require('request')
 // Note Hook / Tag Push Hook / Issue Hook / Note Hook / Merge Request Hook / Wiki Page Hook / Pipeline Hook / Build Hook
 
 // 根据分支配置或者是分支名上挂的组名分发
-let filter = (hookConfigs, data, event) => {
+let filterConfigs = (hookConfigs, data, event) => {
     let getConfigByTeamName = (branchName) => {
         return hookConfigs.find(x => x.projectTeam && branchName.indexOf(`@${x.projectTeam}`) !== -1)
     }
 
-    let config;
+    let config
     switch (event) {
         case 'Push Hook':
             config = hookConfigs.find(x => x.branchs.some(b => data.ref.indexOf(b) !== -1)) || getConfigByTeamName(data.ref)
@@ -38,7 +38,7 @@ let filter = (hookConfigs, data, event) => {
         case 'Issue Hook':
             break;
         case 'Merge Request Hook':
-            config =  hookConfigs.find(x => x.branchs.some(b => b == data.object_attributes.target_branch)) || getConfigByTeamName(data.object_attributes.target_branch)
+            config = hookConfigs.find(x => x.branchs.some(b => b == data.object_attributes.target_branch)) || getConfigByTeamName(data.object_attributes.target_branch)
             break;
         case 'Wiki Page Hook':
             break;
@@ -48,7 +48,7 @@ let filter = (hookConfigs, data, event) => {
             break;
     }
 
-    return config || hookConfigs.find(x => x.isDefault)
+    return [config || hookConfigs.find(x => x.isDefault)]
 }
 
 let actions = {
@@ -60,22 +60,23 @@ let actions = {
             return ctx.body = new ctx.Model.Response().fail('参数错误');
         }
 
-        ctx.logger.log(ctx.request.body)
+        ctx.logger.info(ctx.request.body)
 
         let ignoreEvent = ['Wiki Page Hook', 'Pipeline Hook']; // 屏蔽事件列表
         if (ignoreEvent.some(x => x == event)) {
-            ctx.logger.log('忽略的事件：' + event)
+            ctx.logger.info('忽略的事件：' + event)
             return;
         }
 
-        let configs = await HookConfig.find({ project }).exec()
-        let config = filter(configs, ctx.request.body, event)
-        if (!config) {
+        let projectConfigs = await HookConfig.find({ project }).exec()
+        let configs = filterConfigs(projectConfigs, ctx.request.body, event)
+        if (!configs || !configs.length) {
             return ctx.logger.error('未找到匹配通知对象');
         }
-        ctx.logger.log(`${project}[${event}]: ${config.targetUri}`)
+        ctx.logger.info(`start tigger => ${project}[${event}]: ${config.targetUri}`)
 
-        let options = {
+        configs.forEach(config => {
+            let options = {
                 url: config.targetUri,
                 json: true,
                 headers: {
@@ -84,11 +85,13 @@ let actions = {
                 body: ctx.request.body
             };
 
-        request.post(options, (err, response, body) => {
-            if (err) {
-                ctx.logger.error(err);
-            }
+            request.post(options, (err, response, body) => {
+                if (err) {
+                    ctx.logger.error(err);
+                }
+            })
         })
+
         ctx.body = new ctx.Model.Response()
     }
 }
