@@ -53,46 +53,49 @@ let filterConfigs = (hookConfigs, data, event) => {
 
 let actions = {
     async tigger(ctx, next) {
-        let event = ctx.header['x-gitlab-event']
-        let project = (ctx.request.body.project && ctx.request.body.project.name) || ctx.params.project;
+        try {
+            let event = ctx.header['x-gitlab-event']
+            let project = (ctx.request.body.project && ctx.request.body.project.name) || ctx.params.project;
 
-        if (!event || !project) {
-            return ctx.body = new ctx.Model.Response().fail('参数错误');
-        }
+            if (!event || !project) {
+                return ctx.body = new ctx.Model.Response().fail('参数错误');
+            }
 
-        ctx.logger.info(ctx.request.body)
+            // ctx.logger.info(ctx.request.body)
 
-        let ignoreEvent = ['Wiki Page Hook', 'Pipeline Hook']; // 屏蔽事件列表
-        if (ignoreEvent.some(x => x == event)) {
-            ctx.logger.info('忽略的事件：' + event)
-            return;
-        }
+            let ignoreEvent = ['Wiki Page Hook', 'Pipeline Hook']; // 屏蔽事件列表
+            if (ignoreEvent.some(x => x == event)) {
+                ctx.logger.info('忽略的事件：' + event)
+                return;
+            }
 
-        let projectConfigs = await HookConfig.find({ project }).exec()
-        let configs = filterConfigs(projectConfigs, ctx.request.body, event)
-        if (!configs || !configs.length) {
-            return ctx.logger.error('未找到匹配通知对象');
-        }
-        ctx.logger.info(`start tigger => ${project}[${event}]: ${config.targetUri}`)
+            let projectConfigs = await HookConfig.find({ project }).exec()
+            let configs = filterConfigs(projectConfigs, ctx.request.body, event)
+            if (!configs || !configs.length) {
+                return ctx.logger.error('未找到匹配通知对象', ctx.request.body);
+            }
 
-        configs.forEach(config => {
-            let options = {
-                url: config.targetUri,
-                json: true,
-                headers: {
-                    "content-type": "application/json"
-                },
-                body: ctx.request.body
-            };
+            configs.forEach(config => {
+                let options = {
+                    url: config.targetUri,
+                    json: true,
+                    headers: {
+                        "content-type": "application/json"
+                    },
+                    body: ctx.request.body
+                };
 
-            request.post(options, (err, response, body) => {
-                if (err) {
-                    ctx.logger.error(err);
-                }
+                request.post(options, (err, response, body) => {
+                    if (err) {
+                        ctx.logger.error(err);
+                    }
+                })
             })
-        })
 
-        ctx.body = new ctx.Model.Response()
+            ctx.body = new ctx.Model.Response()
+        } catch(err) {
+            ctx.logger.error(err);
+        }
     }
 }
 

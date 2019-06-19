@@ -1,7 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+const logger = require('../log4js')
 
-let conn = mongoose.connect('mongodb://localhost:27017/huisuo', { useNewUrlParser: true }).connection;
-
-// conn.on('error', console.error.bind(console, '连接数据库失败'));
+mongoose.connect('mongodb://localhost:27017/huisuo', { useNewUrlParser: true }).then(() => {
+    logger.info('mongoose success')
+}).catch((err) => {
+    logger.error(err)
+})
 
 module.exports = mongoose;

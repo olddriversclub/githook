@@ -22,7 +22,7 @@ app.use(serve(__dirname + "/static", {
     /** Root directory to restrict file access. (defaults to '') */
     // root?: string,
     /** Name of the index file to serve automatically when visiting the root location. (defaults to none) */
-    index: 'index.html',
+    index: 'webhook.html',
 }));
 
 app.use(async (ctx, next) => {
@@ -84,8 +84,7 @@ let www = app.listen(1001)
     .on("listening", () => {
         let add = www.address()
         logger.info('opened server on', add)
-        logger.error('asdasdasd error')
-        // opn(`http://${add.address}:${add.port}`);
+        argvs.mode == 'dev' && opn(`http://localhost:${add.port}`);
     });
 
 
